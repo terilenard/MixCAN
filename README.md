@@ -6,6 +6,8 @@ MixCAN (MIXed data authentication for Control Area Networks), represents an appr
 
 The current project stores the source of the MixCAN data authentication method developed in the research: T. Lenard, R. Bolboacă, B. Genge and P. Haller, "MixCAN: Mixed and Backward-Compatible Data Authentication Scheme for Controller Area Networks," 2020 IFIP Networking Conference (Networking), 2020, pp. 395-403.
 
+Research paper can be found [here](http://dl.ifip.org/db/conf/networking/networking2020/1570620040.pdf).
+
 ## How to cite:
 
 @INPROCEEDINGS{9142797,  author={Lenard, Teri and Bolboacă, Roland and Genge, Béla and Haller, Piroska},  booktitle={2020 IFIP Networking Conference (Networking)},   title={MixCAN: Mixed and Backward-Compatible Data Authentication Scheme for Controller Area Networks},   year={2020},  volume={},  number={},  pages={395-403},  doi={}}
