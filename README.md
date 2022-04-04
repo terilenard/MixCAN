@@ -12,12 +12,6 @@ Research paper can be found [here](http://dl.ifip.org/db/conf/networking/network
 
 @INPROCEEDINGS{9142797,  author={Lenard, Teri and Bolboacă, Roland and Genge, Béla and Haller, Piroska},  booktitle={2020 IFIP Networking Conference (Networking)},   title={MixCAN: Mixed and Backward-Compatible Data Authentication Scheme for Controller Area Networks},   year={2020},  volume={},  number={},  pages={395-403},  doi={}}
 
-
-## Dependencies
-
-## Building the project
-
-
 ## Awknowledgement 
 
 This work was funded by the European Union’s Horizon 2020 Re-search and Innovation Programme through [DIAS project](https://dias-project.com/) under Grant Agreement No. 814951. This documentreflects only the author’s view and the Agency is not responsiblefor any use that may be made of the information it contains.
