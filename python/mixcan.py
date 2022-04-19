@@ -8,12 +8,18 @@ class MixCAN(object):
     SHA-1 k=26 n=64 max-num 6bits
     """
     SHA1_LEN = 160
+    FRAME_ID = 1045248 # 0xFF300
+    BF_ID = 1045249 # 0xFF301
 
     def __init__(self, key, num_of_hashes=26, filter_len=64):
         self._key = key
         self._num_of_hashes = num_of_hashes
         self._filter_len = filter_len
         self._filter = [0] * filter_len
+        self._count = 0
+
+    def reset(self):
+        self._filter = [0] *  self._filter_len
         self._count = 0
 
     def insert(self, data):
@@ -37,6 +43,19 @@ class MixCAN(object):
 
         return True
 
+    def verifiy_bf(self, bloom_filter):
+        new_filter = []
+
+        for entry in bloom_filter:
+            as_bin = MixCAN._hex_to_bin(entry)
+            for value in as_bin:
+                new_filter.append(int(value))
+
+        if new_filter == self.filter:
+            return True
+        
+        return False
+
     @property
     def count(self):
         return self._count
@@ -49,7 +68,7 @@ class MixCAN(object):
     def _hex_to_bin(hex_data):
         scale = 16
         num_of_bits = 8
-        return bin(int(hex_data, scale))[2:].zfill(num_of_bits)
+        return bin(int( hex_data, scale))[2:].zfill(num_of_bits)
 
     def to_can(self):
         can_msg = []
@@ -69,6 +88,7 @@ if __name__ == "__main__":
     key = bytes("e179017a-62b0-4996-8a38-e91aa9f1", "UTF-8")
     mixcan = MixCAN(key)
     mixcan.insert("a")
-    print(mixcan.contains("a"))
-    print(mixcan.filter)
-    print(str(mixcan.to_can()))
+    tmp = mixcan.to_can()
+    print(mixcan.verifiy_bf(mixcan.to_can()))
+    mixcan.reset()
+    print(mixcan.verifiy_bf(tmp))
