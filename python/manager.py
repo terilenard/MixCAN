@@ -4,6 +4,7 @@ import sys
 
 from configparser import ConfigParser
 from argparse import ArgumentParser
+from threading import Timer
 
 from mixcan import MixCAN
 from client_mqtt import MQTTClient
@@ -16,7 +17,22 @@ class MixCANManager(object):
     def __init__(self, config):
         self._should_run = False
         self._current_key = ""
-        self._is_verifier = config["mixcan"]["is_verifier"]
+        self._is_sender = config["mixcan"]["is_sender"]
+
+        # The mixcan manager is also a sender
+        if self._is_sender == "True":
+
+            try:
+                self._cycle_time = int(config["mixcan"]["cycle_time"])
+            except ValueError:
+                print("Error occured while parsing config file.")
+                sys.exit(1)
+
+            self._mixcan_timer = Timer(self._cycle_time, self._on_timer)
+        else:
+            self._mixcan_timer = None
+            self._cycle_time = None
+        
         self._last_key_path = config["key"]["last_key"]
 
         self._mixcan = MixCAN(self._current_key)
@@ -35,12 +51,23 @@ class MixCANManager(object):
 
     def start(self):
         self._should_run = True
+
         self._mqtt.connect()
+
+        if self._mixcan_timer:
+            self._mixcan_timer.start()
+        
         self._pycan.start()
 
     def stop(self):
 
         self._should_run = False
+
+        if self._mixcan_timer:
+            print("Stopping cycle timer")
+            self._mixcan_timer.cancel()
+            print("Cycle timer stopped")
+
         if self._pycan.is_running():
             print("Stopping the pycan")
             self._pycan.stop()
@@ -50,6 +77,14 @@ class MixCANManager(object):
             print("Stopping the mqtt client")
             self._mqtt.stop()
             print("Mqtt client stopped")
+        
+
+    def _on_timer(self):
+        print("On mixcan timer")
+        # Restart cycle timer
+        self._mixcan_timer.cancel()
+        self._mixcan_timer = Timer(self._cycle_time, self._on_timer)
+        self._mixcan_timer.start()
 
     def _on_new_can_msg(self, msg, *args):
 
