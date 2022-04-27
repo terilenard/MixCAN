@@ -66,7 +66,7 @@ class MixCAN(object):
     def _hex_to_bin(hex_data):
         scale = 16
         num_of_bits = 8
-        return bin(int( hex_data, scale))[2:].zfill(num_of_bits)
+        return bin(int(hex_data, scale))[2:].zfill(num_of_bits)
 
     def to_can(self):
         can_msg = []
@@ -76,7 +76,7 @@ class MixCAN(object):
             for i in filter_chunk:
                 bin_str += str(i)
 
-            hex_data = hex(int(bin_str, 2))
+            hex_data = int(bin_str, 2)
             can_msg.append(hex_data)
 
         return can_msg
@@ -87,6 +87,4 @@ if __name__ == "__main__":
     mixcan = MixCAN(key)
     mixcan.insert("a")
     tmp = mixcan.to_can()
-    print(mixcan.verifiy_bf(mixcan.to_can()))
-    mixcan.reset()
-    print(mixcan.verifiy_bf(tmp))
+    print(tmp)
