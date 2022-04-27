@@ -8,8 +8,6 @@ class MixCAN(object):
     SHA-1 k=26 n=64 max-num 6bits
     """
     SHA1_LEN = 160
-    FRAME_ID = 1045248 # 0xFF300
-    BF_ID = 1045249 # 0xFF301
 
     def __init__(self, key, num_of_hashes=26, filter_len=64):
         self._key = key
