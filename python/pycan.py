@@ -9,9 +9,7 @@ Technology of Târgu Mureş <https://nislab.umfst.ro/>
 Contributors: Roland Bolboaca, Teri Lenard
 """
 
-import can
 import os
-import sys
 import configparser
 import argparse
 import asyncio

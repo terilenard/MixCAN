@@ -10,7 +10,6 @@ Contributors: Teri Lenard
 """
 
 import logging
-from time import sleep
 
 import paho.mqtt.client as mqtt
 

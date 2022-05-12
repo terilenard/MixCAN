@@ -9,7 +9,6 @@ Technology of Târgu Mureş <https://nislab.umfst.ro/>
 Contributors: Roland Bolboaca
 """
 
-import os
 
 def get_key(file):
     try:
