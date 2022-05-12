@@ -60,7 +60,7 @@ class MQTTClient(object):
     def _on_subscribe(self, mqttc, obj, mid, granted_qos):
         print("Subscribed: " + str(mid) + " " + str(granted_qos))
 
-    def publish_log(data):
+    def publish_log(self, data):
         if self._inst.is_connected():
             self._inst.publish(self._log_topic, data)
             logger.info("Published: {}".format(str(data)))
