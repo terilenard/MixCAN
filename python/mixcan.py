@@ -1,3 +1,14 @@
+"""
+This work is licensed under the terms of the MIT license.  
+For a copy, see <https://opensource.org/licenses/MIT>.
+
+Developed by NISLAB - Network and Information Security Laboratory
+at George Emil Palade University of Medicine, Pharmacy, Science and
+Technology of Târgu Mureş <https://nislab.umfst.ro/>
+
+Contributors: Teri Lenard
+"""
+
 from hashlib import sha1
 import hmac
 
@@ -80,11 +91,3 @@ class MixCAN(object):
             can_msg.append(hex_data)
 
         return can_msg
-
-
-if __name__ == "__main__":
-    key = bytes("e179017a-62b0-4996-8a38-e91aa9f1", "UTF-8")
-    mixcan = MixCAN(key)
-    mixcan.insert("a")
-    tmp = mixcan.to_can()
-    print(tmp)
