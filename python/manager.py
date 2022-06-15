@@ -98,15 +98,15 @@ class MixCANManager(object):
             self._logger.info("Mqtt client stopped")
         
     def _on_new_can_msg_recv(self, msg, *args):
-        self._logger.debug("Received new message with can-id {}".format(
-                        msg.arbitration_id))
+        #self._logger.debug("Received new message with can-id {}".format(
+        #                msg.arbitration_id))
 
         if msg.arbitration_id in self._frame_id:
-            self._logger.debug("Received MixCAN frame: {}".format(msg.data))
+            #self._logger.debug("Received MixCAN frame: {}".format(msg.data))
             self._frame_queue.append(msg)
             return
         elif msg.arbitration_id in self._mixcan_id:
-            self._logger.debug("Received MixCAN bf: {}".format(msg.data))
+           # self._logger.debug("Received MixCAN bf: {}".format(msg.data))
             self._bf_queue.append(msg)
             self._verify_mixcan()
             return
