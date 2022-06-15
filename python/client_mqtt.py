@@ -37,7 +37,7 @@ class MQTTClient(object):
         self._service_name = service_name
         
         self._log_topic = "logging/" + self._service_name
-        self._sub_topic = "key_manager/stk/"
+        self._sub_topic = "keymanager_stk/"
 
     def is_connected(self):
         return self._inst.is_connected()
