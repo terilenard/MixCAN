@@ -22,6 +22,7 @@ class MixCAN(object):
 
     def __init__(self, key, num_of_hashes=26, filter_len=64):
         self._key = key
+        self._old_key = key
         self._num_of_hashes = num_of_hashes
         self._filter_len = filter_len
         self._filter = [0] * filter_len
@@ -33,6 +34,16 @@ class MixCAN(object):
 
     def insert(self, data):
         tag = hmac.new(self._key, data.encode(), sha1).hexdigest()
+        bins = MixCAN._hex_to_bin(tag)
+
+        for i in range(0, MixCAN.SHA1_LEN-4, 6):
+            decimal_data = int(bins[i:i+6], 2)
+            self._filter[decimal_data] = 1
+
+        self._count = self._count + 1
+
+    def insert_old_key(self, data):
+        tag = hmac.new(self._old_key, data.encode(), sha1).hexdigest()
         bins = MixCAN._hex_to_bin(tag)
 
         for i in range(0, MixCAN.SHA1_LEN-4, 6):
@@ -72,6 +83,10 @@ class MixCAN(object):
     @property
     def filter(self):
         return self._filter
+
+    def set_key(self, key):
+        self._old_key = self._key
+        self._key = key
 
     @staticmethod
     def _hex_to_bin(hex_data):
