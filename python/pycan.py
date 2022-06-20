@@ -21,7 +21,8 @@ from can import Notifier
 class Pycan:
     def __init__(self, channel, pipe_path=None, on_message_callback=None):
         self._should_run = False
-        self._can_bus = Bus(channel=channel, bustype='socketcan')
+        self._can_bus = Bus(channel="vcan0", bustype='socketcan')
+        self._out_bus = Bus(channel=channel, bustype='socketcan')
         self._on_message_callback = on_message_callback
         self._listener = BufferedReader()
         self._loop = asyncio.get_event_loop()
@@ -35,6 +36,10 @@ class Pycan:
     @property
     def can_bus(self):
         return self._can_bus
+
+    @property
+    def out_bus(self):
+        return self._out_bus
 
     def _create_pipe(self, pipe_path):
 

@@ -116,6 +116,14 @@ class MixCANManager(object):
     def _on_new_can_msg_sender(self, msg, *args):
 
             # Check if the frame is in the frameid array and get the index
+            
+            if msg.arbitration_id not in self._frame_id:
+                # forward to outbus
+
+                self._pycan.out_bus.send(msg)
+                return
+
+            # Handle frame and bf
             try:
                 idx = self._frame_id.index(msg.arbitration_id)
             except:
@@ -136,7 +144,8 @@ class MixCANManager(object):
 
             # Send the mixcan frame                
             self._logger.debug("Sending mixcan frame: {}".format(mixcan_frame.data))
-            self._pycan.can_bus.send(mixcan_frame)        
+            self._pycan.out_bus.send(msg)
+            self._pycan.out_bus.send(mixcan_frame)        
 
     def _verify_mixcan(self):
         if not self._frame_queue or not self._bf_queue:
