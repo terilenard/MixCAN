@@ -60,6 +60,8 @@ class MixCANManager(object):
 
         self._frame_queue = []
         self._bf_queue = []
+        self._last_frame = None
+        self._last_bf = None
         
         try:
             self._frame_id = [int(i,16) for i in (config["mixcan"]["frame_id"]).split(',')]
@@ -107,7 +109,7 @@ class MixCANManager(object):
             return
         elif msg.arbitration_id in self._mixcan_id:
            # self._logger.debug("Received MixCAN bf: {}".format(msg.data))
-            self._bf_queue.append(msg)
+            self._frame_queue.append(msg)
             self._verify_mixcan()
             return
         else:
@@ -139,26 +141,53 @@ class MixCANManager(object):
             self._pycan.can_bus.send(mixcan_frame)        
 
     def _verify_mixcan(self):
-        if not self._frame_queue or not self._bf_queue:
+        if not self._frame_queue:
             self._logger.error("Didn't receive last frame or last bf.")
             return
 
-        _last_frame = self._frame_queue.pop(0)
-        _data = [int(i) for i in _last_frame.data]
+        if self._frame_queue[0].arbitration_id in self._frame_id:
+            # Case 1: frame 
+            if self._frame_queue[1].arbitration_id in self._frame_id:
+                # Case 1.1: frame -> frame 
+                self._frame_queue.pop(0) # drop frame
+                self._last_frame = self._frame_queue.pop(0) # save the second frame 
+                self._logger.debug("Dropping frame")
+                return # End function call because we do not have bf
+            else:
+                # Case 1.2: there is not a frame after the first one
+                #           it should be a bf. 
+                self._last_frame = self._frame_queue.pop(0) # Save the frame
+                self._last_bf = self._frame_queue.pop(0) # Save the bf
+        
+        elif self._frame_queue[0].arbitration_id in self._mixcan_id:
+            # Case 2: bf this case should drop mismatched bfs that do not have
+            #         a leading frame
+            self._frame_queue.pop(0) # drop the bf
+            # if self._frame_queue[1].arbitration_id in self._mixcan_id:
+            #     # Case 2.1: bf -> bf
+            return
+
+        _data = [int(i) for i in self._last_frame.data]
         _data_as_str = "".join(str(val) for val in _data)
 
         self._mixcan.insert(_data_as_str)
 
-        _last_bf = self._bf_queue.pop(0)
-        bf_as_hex = [hex(i) for i in _last_bf.data]
+        bf_as_hex = [hex(i) for i in self._last_bf.data]
         verified = self._mixcan.verifiy_bf(bf_as_hex)
 
         if not verified:
-            self._logger.debug("MixCAN BF not verified.")
-            self._mqtt.publish_log("MixCAN BF not verified")
-        else:
-            self._logger.debug("MixCAN verified successfully.")
+            # Verify with old key
+            self._mixcan.reset()
+            self._mixcan.insert_old_key(_data_as_str)
+            verified = self._mixcan.verifiy_bf(bf_as_hex)
 
+            if not verified:
+                self._logger.debug("MixCAN BF not verified.")
+                self._mqtt.publish_log("MixCAN BF not verified")
+                self._mixcan.reset()
+                return
+        
+        self._logger.debug("MixCAN verified successfully.")
         self._mixcan.reset()
 
     def _on_new_key(self, mqttc, obj, msg):
@@ -169,6 +198,7 @@ class MixCANManager(object):
     def _save_last_key(self, key):
         
         self._current_key = key
+        self._mixcan.set_key(self._current_key.encode())
         write_key(self._last_key_path, key)
         
 
