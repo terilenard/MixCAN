@@ -40,6 +40,7 @@ class MixCAN(object):
             decimal_data = int(bins[i:i+6], 2)
             self._filter[decimal_data] = 1
 
+        print(self._filter)
         self._count = self._count + 1
 
     def insert_old_key(self, data):
