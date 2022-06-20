@@ -39,6 +39,7 @@ class MixCAN(object):
             decimal_data = int(bins[i:i+6], 2)
             self._filter[decimal_data] = 1
 
+        print(self._filter)
         self._count = self._count + 1
 
     def contains(self, data):
@@ -72,6 +73,9 @@ class MixCAN(object):
     @property
     def filter(self):
         return self._filter
+
+    def set_key(self, key):
+        self._key = key
 
     @staticmethod
     def _hex_to_bin(hex_data):

@@ -169,6 +169,7 @@ class MixCANManager(object):
     def _save_last_key(self, key):
         
         self._current_key = key
+        self._mixcan.set_key(self._current_key.encode())
         write_key(self._last_key_path, key)
         
 
