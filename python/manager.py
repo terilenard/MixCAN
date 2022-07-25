@@ -12,7 +12,7 @@ Contributors: Teri Lenard, Roland Bolboaca
 import sys
 import signal
 
-from threading import Timer
+from time import time
 from argparse import ArgumentParser
 from configparser import ConfigParser
 
@@ -48,7 +48,7 @@ class MixCANManager(object):
 
             self._pycan = Pycan(config["pycan"]["can"],
                                 on_message_callback=self._on_new_can_msg_recv)
-        
+
         self._last_key_path = config["key"]["last_key"]
         self._current_key = get_key(self._last_key_path)
 
@@ -62,7 +62,7 @@ class MixCANManager(object):
         self._bf_queue = []
         self._last_frame = None
         self._last_bf = None
-        
+
         try:
             self._frame_id = [int(i,16) for i in (config["mixcan"]["frame_id"]).split(',')]
             self._mixcan_id = [int(i,16) for i in (config["mixcan"]["mixcan_id"]).split(',')]
@@ -81,7 +81,7 @@ class MixCANManager(object):
 
         self._logger.info("Starting mqtt client")
         self._mqtt.connect()
-        
+
         self._logger.info("Starting pycan")
         self._pycan.start()
 
@@ -98,7 +98,7 @@ class MixCANManager(object):
             self._logger.info("Stopping the mqtt client")
             self._mqtt.stop()
             self._logger.info("Mqtt client stopped")
-        
+
     def _on_new_can_msg_recv(self, msg, *args):
         #self._logger.debug("Received new message with can-id {}".format(
         #                msg.arbitration_id))
@@ -118,10 +118,9 @@ class MixCANManager(object):
     def _on_new_can_msg_sender(self, msg, *args):
 
             # Check if the frame is in the frameid array and get the index
-            
+
             if msg.arbitration_id not in self._frame_id:
                 # forward to outbus
-
                 self._pycan.out_bus.send(msg)
                 return
 
@@ -131,7 +130,7 @@ class MixCANManager(object):
             except:
                 return
 
-            # Convert the payload into a string array and insert it in the BF            
+            # Convert the payload into a string array and insert it in the BF
             _data = msg.data
             _data_as_str = "".join(str(val) for val in _data)
 
@@ -144,10 +143,10 @@ class MixCANManager(object):
                             data=_mixcan_data,
                             is_extended_id=True)
 
-            # Send the mixcan frame                
-            self._logger.debug("Sending mixcan frame: {}".format(mixcan_frame.data))
+            # Send the mixcan frame
+            # self._logger.debug("Sending mixcan frame: {}".format(mixcan_frame.data))
             self._pycan.out_bus.send(msg)
-            self._pycan.out_bus.send(mixcan_frame)        
+            self._pycan.out_bus.send(mixcan_frame)
 
     def _verify_mixcan(self):
         if not self._frame_queue:
@@ -167,7 +166,7 @@ class MixCANManager(object):
                 #           it should be a bf. 
                 self._last_frame = self._frame_queue.pop(0) # Save the frame
                 self._last_bf = self._frame_queue.pop(0) # Save the bf
-        
+
         elif self._frame_queue[0].arbitration_id in self._mixcan_id:
             # Case 2: bf this case should drop mismatched bfs that do not have
             #         a leading frame
@@ -192,11 +191,18 @@ class MixCANManager(object):
 
             if not verified:
                 self._logger.debug("MixCAN BF not verified.")
-                self._mqtt.publish_log("MixCAN BF not verified")
                 self._mixcan.reset()
+
+                can_id = self._last_bf.arbitration_id
+                #count = 1
+                timestamp = time()
+
+                log = "MixCAN BF not verified CAN ID: {} . Timestamp: {} .\n".format(can_id, timestamp)
+                self._mqtt.publish_log(log)
+                self._logger.debug("Published log alert: {}".format(log))
                 return
-        
-        self._logger.debug("MixCAN verified successfully.")
+
+        #self._logger.debug("MixCAN verified successfully.")
         self._mixcan.reset()
 
     def _on_new_key(self, mqttc, obj, msg):
@@ -205,11 +211,11 @@ class MixCANManager(object):
         self._save_last_key(msg.payload.decode())
 
     def _save_last_key(self, key):
-        
+
         self._current_key = key
         self._mixcan.set_key(self._current_key.encode())
         write_key(self._last_key_path, key)
-        
+
 
 def signal_handler(signum, frame):
     mixcan_manager.stop()
